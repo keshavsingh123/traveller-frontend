@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+.input {
+@apply border p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-indigo-500;
+}
+.card {
+  @apply bg-white p-6 rounded-xl shadow-lg w-80;
+}
