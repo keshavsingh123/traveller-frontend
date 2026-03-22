@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Login from "./components/pages/Login";
 import Register from "./components/pages/Register";
@@ -19,6 +19,8 @@ function App() {
         <Navbar />
 
         <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+
           {/* Public */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
