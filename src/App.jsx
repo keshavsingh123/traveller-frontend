@@ -1,8 +1,14 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Login from "./components/pages/Login";
 import Register from "./components/pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PublicRoute from "./components/PublicRoute";
 import CreateTrip from "./components/pages/CreateTrip";
 import AuthProvider from "./context/AuthContext";
 import Home from "./components/pages/Home";
@@ -12,40 +18,55 @@ import "react-toastify/dist/ReactToastify.css";
 function App() {
   return (
     <>
-          <ToastContainer position="top-right" autoClose={2000} />
+      <ToastContainer position="top-right" autoClose={2000} />
 
-    <AuthProvider>
-      <Router>
-        <Navbar />
+      <AuthProvider>
+        <Router>
+          <Navbar />
 
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" replace />} />
 
-          {/* Public */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+            {/* Public */}
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
 
-          {/* Protected */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/register"
+              element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              }
+            />
 
-          <Route
-            path="/generate"
-            element={
-              <ProtectedRoute>
-                <CreateTrip />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </Router>
-    </AuthProvider>
+            {/* Protected */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/generate"
+              element={
+                <ProtectedRoute>
+                  <CreateTrip />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Router>
+      </AuthProvider>
     </>
   );
 }

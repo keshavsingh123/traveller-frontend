@@ -91,7 +91,7 @@ export default function TripCard({ trip }) {
         </div>
 
         {/* Budget badge */}
-        <div className="shrink-0 flex flex-col items-end gap-1.5">
+        {/* <div className="shrink-0 flex flex-col items-end gap-1.5">
           <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full">
             ₹{trip.budget?.total?.toLocaleString() ?? "—"}
           </span>
@@ -111,7 +111,7 @@ export default function TripCard({ trip }) {
                 ? "Optimizing…"
                 : "💰 Optimize"}
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* ── Divider ── */}

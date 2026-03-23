@@ -49,7 +49,7 @@ export default function Login() {
         login(res.token); // 🔥 THIS IS THE MISSING LINE
 
         toast.success("Login Successfully!");
-        navigate("/dashboard");
+         navigate("/dashboard", { replace: true });
       } else {
         toast.error("Invalid credentials");
       }

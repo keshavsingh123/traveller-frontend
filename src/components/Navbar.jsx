@@ -1,19 +1,3 @@
-// import { motion } from "framer-motion";
-
-// export default function Navbar() {
-//   return (
-//     <motion.div
-//       initial={{ y: -50, opacity: 0 }}
-//       animate={{ y: 0, opacity: 1 }}
-//       className="bg-white shadow-md px-6 py-4 flex justify-between items-center"
-//     >
-//       <h1 className="text-xl font-bold text-primary">
-//         ✈️ AI Travel Planner
-//       </h1>
-//     </motion.div>
-//   );
-// }
-// src/components/Navbar.jsx
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Link } from "react-router-dom";

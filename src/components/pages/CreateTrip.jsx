@@ -19,17 +19,20 @@ export default function CreateTrip() {
 };
 
   return (
-    <div className="p-6 max-w-xl mx-auto from-indigo-100 to-purple-100">
+    <div className="p-6 max-w-xl mx-auto ">
+    <div className="text-center">
+      <h2 className="text-2xl font-bold">Let's Plan Trip</h2>
+
+    </div>
     <div className="flex justify-between">
       <button
-      className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition"
+      className="flex items-center gap-1.5 text-lg text-gray-500 hover:text-gray-800 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition"
     >
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
       </svg>
       <Link to="/dashboard">Back </Link>
     </button>
-      <h2 className="text-xl font-bold">Generate Trip</h2>
     </div>
 
       <input className="input mb-2" placeholder="Destination"
@@ -45,7 +48,7 @@ export default function CreateTrip() {
         <option>High</option>
       </select>
 
-      <input className="input mb-4" placeholder="Interests"
+      <input className="input mb-4" placeholder="Interests (eg. mountain, club, food...)"
         onChange={(e)=>setForm({...form,interests:e.target.value})}/>
       <div className="text-center">
         <button onClick={handleSubmit}
