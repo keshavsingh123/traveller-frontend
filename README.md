@@ -1,5 +1,9 @@
 # React + Vite
-
+Run with # npm run dev
+# tailwind css
+ added tailwind libaray to apply classes directlt instead of css
+# added toast
+react-toastify to get what happenning
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
