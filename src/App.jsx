@@ -14,6 +14,7 @@ import AuthProvider from "./context/AuthContext";
 import Home from "./components/pages/Home";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import TripDetails from "./components/pages/TripDetails";
 
 function App() {
   return (
@@ -61,6 +62,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CreateTrip />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/trips/:tripId"
+              element={
+                <ProtectedRoute>
+                  <TripDetails />
                 </ProtectedRoute>
               }
             />

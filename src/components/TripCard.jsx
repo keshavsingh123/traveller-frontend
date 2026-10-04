@@ -1,277 +1,216 @@
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { deleteTrip } from "../services/travelService";
+
+import { toast } from "react-toastify";
+
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { optimizeBudget, suggestActivity } from "../services/travelService";
+export default function TripCard({ trip, onDeleted }) {
+  const [deleting, setDeleting] = useState(false);
+  const navigate = useNavigate();
 
-export default function TripCard({ trip }) {
-  const [loadingSuggest, setLoadingSuggest] = useState(null); // day index
-  const [loadingOptimize, setLoadingOptimize] = useState(false);
-  const [suggestions, setSuggestions] = useState({}); 
-  const [newActivities, setNewActivities] = useState({});
-  const [expandedDay, setExpandedDay] = useState(null);
-  const [optimized, setOptimized] = useState(false);
+  const days = trip.days || trip.itinerary?.length || 0;
 
-  const handleSuggest = async (dayIndex) => {
-  setLoadingSuggest(dayIndex);
+  const activityCount =
+    trip.itinerary?.reduce(
+      (total, day) => total + (day.activities?.length || 0),
+      0,
+    ) || 0;
 
-  try {
-    let raw = await suggestActivity({
-      destination: trip.destination,
-      interest: "nightlife",
-    });
+  const hotelCount = trip.hotels?.length || 0;
 
-    console.log("RAW ACTIVITY:", raw);
+  const initials = trip.destination?.slice(0, 2).toUpperCase() || "TR";
 
-    // ✅ Explicitly extract the activity array
-    let activities = [];
+  const interests =
+    typeof trip.interests === "string"
+      ? trip.interests
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .slice(0, 3)
+      : [];
 
-    if (Array.isArray(raw)) {
-      activities = raw;
-    } else if (raw?.activity && Array.isArray(raw.activity)) {
-      activities = raw.activity;                        // ✅ this is your case
-    } else if (raw?.suggestions && Array.isArray(raw.suggestions)) {
-      activities = raw.suggestions;
-    } else if (typeof raw === "string") {
-      activities = raw.split(",").map((s) => s.trim());
-    }
+  const createdDate = trip.createdAt
+    ? new Date(trip.createdAt).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+  const handleDelete = async (e) => {
+    e.stopPropagation();
 
-    // Ensure every item is a string
-    activities = activities.map((a) =>
-      typeof a === "string" ? a : a?.name || a?.activity || JSON.stringify(a)
-    );
+    const confirmed = window.confirm(`Delete your ${trip.destination} trip?`);
 
-    setSuggestions((prev) => ({ ...prev, [dayIndex]: activities }));
-  } catch (err) {
-    console.error("suggestActivity error:", err);
-    setSuggestions((prev) => ({ ...prev, [dayIndex]: [] }));
-  } finally {
-    setLoadingSuggest(null);
-  }
-};
+    if (!confirmed) return;
 
-  const handleOptimize = async () => {
-    setLoadingOptimize(true);
+    if (deleting) return;
+
     try {
-      await optimizeBudget(trip._id, "Low");
-      setOptimized(true);
-      setTimeout(() => window.location.reload(), 800);
-    } catch {
-      setLoadingOptimize(false);
+      setDeleting(true);
+
+      await deleteTrip(trip._id);
+
+      toast.success("Trip deleted");
+
+      onDeleted?.(trip._id);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Unable to delete trip");
+    } finally {
+      setDeleting(false);
     }
   };
-
-  const handleAddActivity = (dayIndex) => {
-    const activity = newActivities[dayIndex]?.trim();
-    if (!activity) return;
-    // TODO: wire up API call
-    setNewActivities((prev) => ({ ...prev, [dayIndex]: "" }));
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200"
+    <motion.article
+      initial={{
+        opacity: 0,
+        y: 16,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      whileHover={{
+        y: -3,
+      }}
+      transition={{
+        duration: 0.25,
+      }}
+      className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-indigo-200 hover:shadow-xl hover:shadow-slate-200/60 transition-all"
     >
-      {/* ── Header ── */}
-      <div className="px-5 pt-5 pb-4 flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          {/* Destination avatar */}
-          <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0">
-            {trip.destination?.slice(0, 2).toUpperCase() || "??"}
+      {/* Cover */}
+
+      <div className="relative h-36 overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600">
+        {/* Decorative elements */}
+
+        <div className="absolute w-40 h-40 bg-white/10 rounded-full -right-8 -top-12" />
+
+        <div className="absolute w-32 h-32 bg-white/10 rounded-full -bottom-14 left-10" />
+
+        <div className="absolute inset-0 p-5 flex flex-col justify-between">
+          <div className="flex justify-between items-start">
+            <div className="w-11 h-11 rounded-xl bg-white/15 backdrop-blur border border-white/20 text-white flex items-center justify-center font-bold">
+              {initials}
+            </div>
+
+            {trip.budgetType && (
+              <span className="bg-white/15 backdrop-blur border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">
+                {trip.budgetType}
+              </span>
+            )}
           </div>
+
           <div>
-            <h3 className="font-semibold text-gray-900 text-base leading-tight">
-              {trip.destination}
-            </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {trip.itinerary?.length ?? 0} days
+            <p className="text-indigo-100 text-xs font-medium">
+              TRIPPILOT JOURNEY
             </p>
+
+            <h3 className="text-2xl font-bold text-white mt-1 truncate">
+              {trip.destination || "Untitled Trip"}
+            </h3>
           </div>
         </div>
-
-        {/* Budget badge */}
-        {/* <div className="shrink-0 flex flex-col items-end gap-1.5">
-          <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full">
-            ₹{trip.budget?.total?.toLocaleString() ?? "—"}
-          </span>
-          <button
-            onClick={handleOptimize}
-            disabled={loadingOptimize || optimized}
-            className={`text-xs font-medium px-2.5 py-1 rounded-full border transition
-              ${
-                optimized
-                  ? "bg-emerald-500 text-white border-emerald-500"
-                  : "border-emerald-300 text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
-              }`}
-          >
-            {optimized
-              ? "✓ Optimized"
-              : loadingOptimize
-                ? "Optimizing…"
-                : "💰 Optimize"}
-          </button>
-        </div> */}
       </div>
 
-      {/* ── Divider ── */}
-      <div className="h-px bg-gray-100 mx-5" />
+      {/* Content */}
 
-      {/* ── Itinerary ── */}
-      <div className="px-5 py-4 space-y-3">
-        {trip.itinerary?.map((day, i) => (
-          <div
-            key={i}
-            className="rounded-xl border border-gray-100 overflow-hidden"
-          >
-            {/* Day header — toggle */}
-            <button
-              onClick={() => setExpandedDay(expandedDay === i ? null : i)}
-              className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-semibold flex items-center justify-center">
-                  {i + 1}
-                </span>
-                <span className="text-sm font-medium text-gray-800">
-                  Day {i + 1}
-                </span>
-                <span className="text-xs text-gray-400">
-                  · {day.activities.length} activities
-                </span>
-              </div>
-              <svg
-                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${expandedDay === i ? "rotate-180" : ""}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
+      <div className="p-5">
+        {/* Main stats */}
 
-            <AnimatePresence initial={false}>
-              {expandedDay === i && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.22, ease: "easeInOut" }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-4 pb-4 pt-1 border-t border-gray-100 bg-gray-50/50">
-                    {/* Activities list */}
-                    {/* <ul className="space-y-1.5 mb-3">
-                      {day.activities.map((a, idx) => (
-                        <li
-                          key={idx}
-                          className="flex items-start gap-2 text-sm text-gray-700"
-                        >
-                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-                          {a}
-                        </li>
-                      ))}
-                    </ul> */}
-                    <ul className="space-y-1.5 mb-3">
-                      {[...day.activities, ...(suggestions[i] ?? [])].map(
-                        (a, idx) => {
-                          const isNew = idx >= day.activities.length;
-                          return (
-                            <li
-                              key={idx}
-                              className="flex items-start gap-2 text-sm"
-                            >
-                              <span
-                                className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${
-                                  isNew ? "bg-purple-400" : "bg-indigo-400"
-                                }`}
-                              />
-                              <span
-                                className={
-                                  isNew
-                                    ? "text-purple-700 font-medium"
-                                    : "text-gray-700"
-                                }
-                              >
-                                {a}
-                                {isNew && (
-                                  <span className="ml-1.5 text-[10px] bg-purple-100 text-purple-500 px-1.5 py-0.5 rounded-full">
-                                    new
-                                  </span>
-                                )}
-                              </span>
-                            </li>
-                          );
-                        },
-                      )}
-                    </ul>
+        <div className="grid grid-cols-3 gap-2">
+          <MiniStat value={days} label={Number(days) === 1 ? "Day" : "Days"} />
 
-                    {/* Suggested activities */}
-                    
+          <MiniStat value={activityCount} label="Activities" />
 
-                    {/* Add activity inline */}
-                    {/* <div className="flex gap-2 mb-3">
-                      <input
-                        type="text"
-                        placeholder="Add an activity…"
-                        value={newActivities[i] || ""}
-                        onChange={(e) =>
-                          setNewActivities((prev) => ({ ...prev, [i]: e.target.value }))
-                        }
-                        onKeyDown={(e) => e.key === "Enter" && handleAddActivity(i)}
-                        className="flex-1 text-sm px-3 py-1.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
-                      />
-                      <button
-                        onClick={() => handleAddActivity(i)}
-                        className="text-sm px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
-                      >
-                        Add
-                      </button>
-                    </div> */}
+          <MiniStat value={hotelCount} label="Hotels" />
+        </div>
 
-                    <button
-                      onClick={() => handleSuggest(i)}
-                      disabled={loadingSuggest === i}
-                      className="text-xs font-medium text-purple-600 border border-purple-200 px-3 py-1.5 rounded-lg hover:bg-purple-50 transition disabled:opacity-50"
-                    >
-                      {loadingSuggest === i
-                        ? "Loading…"
-                        : "✨ Suggest Activities"}
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        ))}
-      </div>
+        {/* Interests */}
 
-      {/* ── Hotels ── */}
-      {trip.hotels?.length > 0 && (
-        <>
-          <div className="h-px bg-gray-100 mx-5" />
-          <div className="px-5 py-4">
-            <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-              Hotels
+        {interests.length > 0 && (
+          <div className="mt-5">
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-2">
+              Interests
             </p>
+
             <div className="flex flex-wrap gap-2">
-              {trip.hotels.map((h, i) => (
+              {interests.map((interest, index) => (
                 <span
-                  key={i}
-                  className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full"
+                  key={`${interest}-${index}`}
+                  className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1.5 rounded-lg font-medium"
                 >
-                  🏨 {h}
+                  {interest}
                 </span>
               ))}
             </div>
           </div>
-        </>
-      )}
-    </motion.div>
+        )}
+
+        {/* First day preview */}
+
+        {trip.itinerary?.[0] && (
+          <div className="mt-5 pt-4 border-t border-slate-100">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+              Day 1 Preview
+            </p>
+
+            <div className="mt-2 space-y-1.5">
+              {trip.itinerary[0].activities
+                ?.slice(0, 2)
+                .map((activity, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start gap-2 text-sm text-slate-600"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0 mt-2" />
+
+                    <span className="line-clamp-1">
+                      {typeof activity === "string"
+                        ? activity
+                        : activity?.name || activity?.activity || "Activity"}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+
+        <div className="flex items-center justify-between mt-6">
+          <span className="text-xs text-slate-400">
+            {createdDate ? `Created ${createdDate}` : `${days} day itinerary`}
+          </span>
+
+          <div className="flex items-center gap-3">
+            <button
+              disabled={deleting}
+              onClick={handleDelete}
+              className="text-sm font-medium text-red-500 hover:text-red-700 disabled:text-slate-300"
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </button>
+
+            <button
+              onClick={() => navigate(`/trips/${trip._id}`)}
+              className="flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition"
+            >
+              Explore trip
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
+function MiniStat({ value, label }) {
+  return (
+    <div className="rounded-xl bg-slate-50 p-3 text-center">
+      <p className="font-bold text-slate-900">{value || 0}</p>
+
+      <p className="text-[11px] text-slate-500 mt-0.5">{label}</p>
+    </div>
   );
 }
